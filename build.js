@@ -1,4 +1,7 @@
+const fs = require("fs");
+
 const StyleDictionaryPackage = require('style-dictionary');
+const _ = require("lodash");
 
 // HAVE THE STYLE DICTIONARY CONFIG DYNAMICALLY GENERATED
 
@@ -77,11 +80,11 @@ function getStyleDictionaryConfig(brand, platform) {
                 "files": [
                     {
                         "destination": "tokens-all.plist",
-                        "template": "ios/plist"
+                        "format": "ios/plist"
                     },
                     {
                         "destination": "tokens-colors.plist",
-                        "template": "ios/plist",
+                        "format": "ios/plist",
                         "filter":{
                             "type": "color"
                         }
@@ -97,11 +100,11 @@ function getStyleDictionaryConfig(brand, platform) {
                 "files": [
                     {
                         "destination": "tokens-all.xml",
-                        "template": "android/xml"
+                        "format": "android/xml"
                     },
                     {
                         "destination": "tokens-colors.xml",
-                        "template": "android/xml",
+                        "format": "android/xml",
                         "filter":{
                             "type": "color"
                         }
@@ -124,19 +127,19 @@ StyleDictionaryPackage.registerFormat({
     }
 });
 
-StyleDictionaryPackage.registerTemplate({
+StyleDictionaryPackage.registerFormat({
     name: 'ios/plist',
-    template: __dirname + '/templates/ios-plist.template'
+    formatter: _.template( fs.readFileSync( __dirname + '/templates/ios-plist.template' ) )
 });
 
-StyleDictionaryPackage.registerTemplate({
+StyleDictionaryPackage.registerFormat({
     name: 'android/xml',
-    template: __dirname + '/templates/android-xml.template'
+    formatter: _.template( fs.readFileSync( __dirname + '/templates/android-xml.template' ) )
 });
 
-StyleDictionaryPackage.registerTemplate({
-    name: 'android/colors',
-    template: __dirname + '/templates/android-xml.template'
+StyleDictionaryPackage.registerFormat({
+    name: 'android/color',
+    formatter: _.template( fs.readFileSync( __dirname + '/templates/android-xml.template' ) )
 });
 
 // I wanted to use this custom transform instead of the "prefix" property applied to the platforms
@@ -157,8 +160,8 @@ StyleDictionaryPackage.registerTemplate({
 StyleDictionaryPackage.registerTransform({
     name: 'size/pxToPt',
     type: 'value',
-    matcher: function(prop) {
-        return prop.value.match(/^[\d.]+px$/);
+  matcher: function (prop) {
+        return typeof prop.value === "string" ? prop.value.match(/^[\d.]+px$/) : false;
     },
     transformer: function(prop) {
         return prop.value.replace(/px$/, 'pt');
@@ -169,7 +172,7 @@ StyleDictionaryPackage.registerTransform({
     name: 'size/pxToDp',
     type: 'value',
     matcher: function(prop) {
-        return prop.value.match(/^[\d.]+px$/);
+      return typeof prop.value === "string" ? prop.value.match(/^[\d.]+px$/) : false;
     },
     transformer: function(prop) {
         return prop.value.replace(/px$/, 'dp');
